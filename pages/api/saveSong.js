@@ -1,24 +1,50 @@
-import fs from "fs";
-import path from "path";
+export default async function handler(req, res) {
+  const binUrl = process.env.NEXT_PUBLIC_JSONBIN_URL;
+  const apiKey = process.env.NEXT_PUBLIC_JSONBIN_KEY;
 
-export default function handler(req, res) {
-  const filePath = path.join(process.cwd(), "data.json");
-
-  let songs = [];
-  if (fs.existsSync(filePath)) {
-    songs = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  if (!binUrl || !apiKey) {
+    return res.status(500).json({ error: "❌ Missing JSONBin environment variables" });
   }
 
-  if (req.method === "POST") {
-    const newSong = req.body;
-    songs.push(newSong);
-    fs.writeFileSync(filePath, JSON.stringify(songs, null, 2));
-    return res.status(200).json({ success: true, message: "บันทึกเพลงสำเร็จ!" });
-  }
+  try {
+    if (req.method === "GET") {
+      // ✅ อ่านข้อมูลทั้งหมดจาก Bin
+      const resp = await fetch(binUrl + "/latest", {
+        headers: { "X-Master-Key": apiKey },
+      });
+      const json = await resp.json();
+      return res.status(200).json(json.record || []);
+    }
 
-  if (req.method === "GET") {
-    return res.status(200).json(songs);
-  }
+    if (req.method === "POST") {
+      const newSong = req.body;
 
-  res.status(405).json({ message: "Method not allowed" });
+      // ✅ โหลดข้อมูลเก่าจาก Bin
+      const oldResp = await fetch(binUrl + "/latest", {
+        headers: { "X-Master-Key": apiKey },
+      });
+      const oldData = await oldResp.json();
+      const songs = oldData.record || [];
+
+      // ✅ เพิ่มเพลงใหม่
+      songs.push(newSong);
+
+      // ✅ เขียนกลับไปยัง JSONBin
+      await fetch(binUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Master-Key": apiKey,
+        },
+        body: JSON.stringify(songs),
+      });
+
+      return res.status(200).json({ success: true, message: "บันทึกเพลงสำเร็จ!" });
+    }
+
+    res.status(405).json({ message: "Method not allowed" });
+  } catch (err) {
+    console.error("🔥 Error:", err);
+    res.status(500).json({ error: "Server Error" });
+  }
 }
