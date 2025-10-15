@@ -27,11 +27,14 @@ body {
 
 @keyframes float {
   0% {
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
+    opacity: 0;
+  }
+  30% {
     opacity: 1;
   }
   100% {
-    transform: translateY(-200px) scale(1.2);
+    transform: translateY(-200px);
     opacity: 0;
   }
 }
@@ -52,20 +55,44 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes floatImage {
+@keyframes floatImageHeart {
   0% {
-    transform: translateY(0) scale(1) rotate(0deg);
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  10% {
     opacity: 1;
   }
+  50% {
+    transform: translateY(-200px) scale(1.1) rotate(5deg);
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.8;
+  }
   100% {
-    transform: translateY(-250px) scale(1.1) rotate(10deg);
+    transform: translateY(-800px) scale(1.3) rotate(-10deg);
     opacity: 0;
   }
 }
 
-.animate-floatImage {
-  animation: floatImage linear infinite;
+@media (max-width: 640px) {
+  iframe {
+    height: 160px !important;
+  }
+
+  .song-card {
+    padding: 12px !important;
+    font-size: 0.9rem;
+  }
 }
+
+.animate-floatImageHeart {
+  animation-name: floatImageHeart;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
 
 .card-fade {
   animation: fadeIn 0.8s ease forwards;

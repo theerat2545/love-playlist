@@ -1,47 +1,20 @@
-import { useState, useEffect } from "react";
-
-export default function FloatingTexts({ previewMessage = "" }) {
-  const [texts, setTexts] = useState([]);
-
-  useEffect(() => {
-    if (previewMessage) {
-      const newText = {
-        id: Date.now(),
-        text: previewMessage,
-        left: `${Math.random() * 90}%`,
-        top: `${80 + Math.random() * 10}%`, // เริ่มล่าง ๆ
-      };
-      setTexts((prev) => [...prev, newText]);
-
-      // ให้ข้อความหายหลังจาก 8 วินาที
-      const timeout = setTimeout(() => {
-        setTexts((prev) => prev.filter((t) => t.id !== newText.id));
-      }, 8000);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [previewMessage]);
-
+export default function FloatingTexts({ messages = [] }) {
   return (
-    <div
-      className="absolute inset-0 overflow-hidden pointer-events-none card-fade"
-      style={{ zIndex: 0 }}
-    >
-      {texts.map((t) => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 1 }}>
+      {messages.map((msg, i) => (
         <span
-          key={t.id}
-          className="absolute text-pink-200 font-semibold animate-floatText card-fade"
+          key={i}
+          className="absolute text-pink-100 text-sm animate-float opacity-90"
           style={{
-            left: t.left,
-            top: t.top,
-            animationDuration: `${5 + Math.random() * 5}s`,
-            fontSize: `${18 + Math.random() * 12}px`,
-            transform: "translateX(-50%)",
-            color: "#fff",
-            textShadow: "0 0 8px #ff69b4",
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDuration: `${6 + Math.random() * 6}s`,
+            animationDelay: `${Math.random() * 4}s`,
+            fontSize: `${14 + Math.random() * 6}px`,
+            textShadow: "0 0 8px rgba(255,192,203,0.5)",
           }}
         >
-          {t.text}
+          💬 {msg}
         </span>
       ))}
     </div>
