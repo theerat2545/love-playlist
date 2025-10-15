@@ -13,33 +13,37 @@ export default function CreatePlaylist() {
   });
   const router = useRouter();
 
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const newSong = { title, artist, url, message };
+
+    await fetch("/api/saveSong", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newSong),
+    });
+
+    alert("บันทึกเพลงสำเร็จ ❤️");
+  }
+
+
   useEffect(() => {
-    async function saveSong() {
-      // ดึงข้อมูลที่มีอยู่ใน localStorage
-      const saved = localStorage.getItem("loveSongs");
-      if (saved) {
-        const parsed = JSON.parse(saved);
+    async function loadSongs() {
+      const res = await fetch("/api/saveSong");
+      const data = await res.json();
+      setSongs(data);
 
-        // วนลูปส่งเพลงแต่ละอันไปที่ API
-        for (const song of parsed) {
-          await fetch("/api/saveSong", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(song),
-          });
-        }
-
-        setSongs(parsed); // อัปเดต state หลังบันทึก
-      }
+      const baseMessages = data.map((s) => s.message).filter(Boolean);
+      const repeated = baseMessages.flatMap((msg) => {
+        const times = 1 + Math.floor(Math.random() * 5);
+        return Array.from({ length: times }, () => msg);
+      });
+      setMessages(repeated);
     }
 
-    saveSong();
+    loadSongs();
   }, []);
-
-
-  useEffect(() => {
-    localStorage.setItem("loveSongs", JSON.stringify(songs));
-  }, [songs]);
 
   const addSong = () => {
     if (!newSong.title || !newSong.url) {
