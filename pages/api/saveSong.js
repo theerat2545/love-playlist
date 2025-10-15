@@ -4,7 +4,6 @@ import path from "path";
 export default function handler(req, res) {
   const filePath = path.join(process.cwd(), "data.json");
 
-  // อ่านข้อมูลเก่า (ถ้ามี)
   let songs = [];
   if (fs.existsSync(filePath)) {
     songs = JSON.parse(fs.readFileSync(filePath, "utf8"));
