@@ -7,30 +7,45 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (req.method === "GET") {
-      // ✅ อ่านข้อมูลทั้งหมดจาก Bin
-      const resp = await fetch(binUrl + "/latest", {
-        headers: { "X-Master-Key": apiKey },
-      });
-      const json = await resp.json();
-      return res.status(200).json(json.record || []);
-    }
-
-    if (req.method === "POST") {
-      const newSong = req.body;
-
-      // ✅ โหลดข้อมูลเก่าจาก Bin
+    // 🧠 โหลดข้อมูลเก่า (กัน error JSON.parse)
+    let songs = [];
+    try {
       const oldResp = await fetch(binUrl + "/latest", {
         headers: { "X-Master-Key": apiKey },
       });
-      const oldData = await oldResp.json();
-      const songs = oldData.record || [];
 
-      // ✅ เพิ่มเพลงใหม่
+      if (oldResp.ok) {
+        const text = await oldResp.text(); // อ่านแบบ text ก่อนกันกรณีว่าง
+        if (text.trim()) {
+          const parsed = JSON.parse(text);
+          songs = Array.isArray(parsed.record)
+            ? parsed.record
+            : Array.isArray(parsed)
+            ? parsed
+            : [];
+        }
+      }
+    } catch (err) {
+      console.warn("⚠️ JSONBin ว่างหรือ parse ไม่ได้:", err.message);
+    }
+
+    // 🧾 GET - แสดงข้อมูลทั้งหมด
+    if (req.method === "GET") {
+      return res.status(200).json(songs);
+    }
+
+    // 💖 POST - เพิ่มเพลงใหม่
+    if (req.method === "POST") {
+      const { title, artist, url, message } = req.body;
+      if (!title || !artist || !url || !message) {
+        return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบทุกช่อง" });
+      }
+
+      const newSong = { title, artist, url, message };
       songs.push(newSong);
 
-      // ✅ เขียนกลับไปยัง JSONBin
-      await fetch(binUrl, {
+      // ✅ บันทึกกลับไปที่ JSONBin
+      const saveResp = await fetch(binUrl, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -39,12 +54,32 @@ export default async function handler(req, res) {
         body: JSON.stringify(songs),
       });
 
-      return res.status(200).json({ success: true, message: "บันทึกเพลงสำเร็จ!" });
+      const resultText = await saveResp.text();
+      let result;
+      try {
+        result = JSON.parse(resultText);
+      } catch {
+        console.warn("⚠️ JSONBin ไม่ได้คืน JSON:", resultText);
+        result = {};
+      }
+
+      if (!saveResp.ok) {
+        console.error("🔥 JSONBin Save Error:", result);
+        return res.status(saveResp.status).json({
+          error: "❌ JSONBin Save Failed",
+          detail: result,
+        });
+      }
+
+      return res.status(200).json({ success: true, message: "บันทึกเพลงสำเร็จ!", data: result });
     }
 
     res.status(405).json({ message: "Method not allowed" });
   } catch (err) {
-    console.error("🔥 Error:", err);
-    res.status(500).json({ error: "Server Error" });
+    console.error("🔥 Server Error:", err);
+    return res.status(500).json({
+      error: "Server Error",
+      detail: err.message,
+    });
   }
 }
