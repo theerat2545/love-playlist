@@ -14,9 +14,28 @@ export default function CreatePlaylist() {
   const router = useRouter();
 
   useEffect(() => {
-    const saved = localStorage.getItem("loveSongs");
-    if (saved) setSongs(JSON.parse(saved));
+    async function saveSong() {
+      // ดึงข้อมูลที่มีอยู่ใน localStorage
+      const saved = localStorage.getItem("loveSongs");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+
+        // วนลูปส่งเพลงแต่ละอันไปที่ API
+        for (const song of parsed) {
+          await fetch("/api/saveSong", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(song),
+          });
+        }
+
+        setSongs(parsed); // อัปเดต state หลังบันทึก
+      }
+    }
+
+    saveSong();
   }, []);
+
 
   useEffect(() => {
     localStorage.setItem("loveSongs", JSON.stringify(songs));
