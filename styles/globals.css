@@ -24,3 +24,58 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes float {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-200px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes floatText {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-200px);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatImage {
+  0% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-250px) scale(1.1) rotate(10deg);
+    opacity: 0;
+  }
+}
+
+.animate-floatImage {
+  animation: floatImage linear infinite;
+}
+
+.card-fade {
+  animation: fadeIn 0.8s ease forwards;
+}
+
+
+.animate-float {
+  animation: float linear infinite;
+}
+
+.animate-floatText {
+  animation: floatText linear infinite;
+}
